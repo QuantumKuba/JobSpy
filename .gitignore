@@ -10,3 +10,5 @@
 dist
 .venv
 scrape.ipynb
+REED_IMPLEMENTATION.md
+reed_example.py

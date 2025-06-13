@@ -11,6 +11,7 @@ from jobspy.google import Google
 from jobspy.indeed import Indeed
 from jobspy.linkedin import LinkedIn
 from jobspy.naukri import Naukri
+from jobspy.reed import ReedScraper
 from jobspy.model import JobType, Location, JobResponse, Country
 from jobspy.model import SalarySource, ScraperInput, Site
 from jobspy.util import (
@@ -46,10 +47,16 @@ def scrape_jobs(
     enforce_annual_salary: bool = False,
     verbose: int = 0,
     user_agent: str = None,
+    reed_api_key: str | None = None,
     **kwargs,
 ) -> pd.DataFrame:
     """
     Scrapes job data from job boards concurrently
+
+    :param reed_api_key: Reed API key for accessing Reed.co.uk jobs.
+                        Required when using 'reed' as a site.
+                        Can also be set via REED_API_KEY environment variable.
+                        Get your API key from https://www.reed.co.uk/developers
     :return: Pandas DataFrame containing job data
     """
     SCRAPER_MAPPING = {
@@ -60,6 +67,7 @@ def scrape_jobs(
         Site.GOOGLE: Google,
         Site.BAYT: BaytScraper,
         Site.NAUKRI: Naukri,
+        Site.REED: ReedScraper,
     }
     set_logger_level(verbose)
     job_type = get_enum_from_value(job_type) if job_type else None
@@ -99,7 +107,17 @@ def scrape_jobs(
 
     def scrape_site(site: Site) -> Tuple[str, JobResponse]:
         scraper_class = SCRAPER_MAPPING[site]
-        scraper = scraper_class(proxies=proxies, ca_cert=ca_cert, user_agent=user_agent)
+        if site == Site.REED:
+            scraper = scraper_class(
+                proxies=proxies,
+                ca_cert=ca_cert,
+                user_agent=user_agent,
+                api_key=reed_api_key,
+            )
+        else:
+            scraper = scraper_class(
+                proxies=proxies, ca_cert=ca_cert, user_agent=user_agent
+            )
         scraped_data: JobResponse = scraper.scrape(scraper_input)
         cap_name = site.value.capitalize()
         site_name = "ZipRecruiter" if cap_name == "Zip_recruiter" else cap_name
@@ -180,7 +198,7 @@ def scrape_jobs(
                 else None
             )
 
-            #naukri-specific fields
+            # naukri-specific fields
             job_data["skills"] = (
                 ", ".join(job_data["skills"]) if job_data["skills"] else None
             )

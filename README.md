@@ -4,7 +4,7 @@
 
 ## Features
 
-- Scrapes job postings from **LinkedIn**, **Indeed**, **Glassdoor**, **Google**, **ZipRecruiter**, **Bayt** & **Naukri** concurrently
+- Scrapes job postings from **LinkedIn**, **Indeed**, **Glassdoor**, **Google**, **ZipRecruiter**, **Bayt**, **Naukri** & **Reed** concurrently
 - Aggregates the job postings in a dataframe
 - Proxies support to bypass blocking
 
@@ -25,7 +25,7 @@ import csv
 from jobspy import scrape_jobs
 
 jobs = scrape_jobs(
-    site_name=["indeed", "linkedin", "zip_recruiter", "glassdoor", "google", "bayt", "naukri"],
+    site_name=["indeed", "linkedin", "zip_recruiter", "glassdoor", "google", "bayt", "naukri", "reed"],
     search_term="software engineer",
     google_search_term="software engineer jobs near San Francisco, CA since yesterday",
     location="San Francisco, CA",
@@ -39,6 +39,30 @@ jobs = scrape_jobs(
 print(f"Found {len(jobs)} jobs")
 print(jobs.head())
 jobs.to_csv("jobs.csv", quoting=csv.QUOTE_NONNUMERIC, escapechar="\\", index=False) # to_excel
+```
+
+### Reed.co.uk API Setup
+
+To use Reed as a job site, you need to get a free API key:
+
+1. Go to [Reed Developer Portal](https://www.reed.co.uk/developers)
+2. Sign up for a free account
+3. Get your API key from the dashboard
+4. Use it in one of these ways:
+
+**Option 1: Environment Variable**
+```bash
+export REED_API_KEY=your_api_key_here
+```
+
+**Option 2: Direct Parameter**
+```python
+jobs = scrape_jobs(
+    site_name="reed",
+    search_term="python developer", 
+    location="London",
+    reed_api_key="your_api_key_here"
+)
 ```
 
 ### Output
@@ -59,7 +83,7 @@ zip_recruiter Software Developer                 TEKsystems        Phoenix      
 ```plaintext
 Optional
 ├── site_name (list|str): 
-|    linkedin, zip_recruiter, indeed, glassdoor, google, bayt
+|    linkedin, zip_recruiter, indeed, glassdoor, google, bayt, naukri, reed
 |    (default is all)
 │
 ├── search_term (str)
@@ -115,6 +139,12 @@ Optional
 |
 ├── ca_cert (str)
 |    path to CA Certificate file for proxies
+|
+├── reed_api_key (str)
+|    Reed API key for scraping Reed.co.uk jobs.
+|    Required when using 'reed' as a site.
+|    Can also be set via REED_API_KEY environment variable.
+|    Get your API key from https://www.reed.co.uk/developers
 ```
 
 ```
@@ -169,6 +199,14 @@ You can specify the following countries when searching on Indeed (use the exact 
 ### **Bayt**
 
 Bayt only uses the search_term parameter currently and searches internationally
+
+### **Naukri**
+
+Naukri focuses primarily on jobs in India and uses search_term and location parameters.
+
+### **Reed**
+
+Reed.co.uk searches for jobs in the **United Kingdom** and requires an API key. You can get a free API key from [Reed's developer portal](https://www.reed.co.uk/developers). Reed uses the `search_term`, `location`, and supports job type filtering.
 
 
 
